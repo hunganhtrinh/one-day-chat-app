@@ -128,7 +128,12 @@
     "modulePaths": [],
     "moduleNameMapper": {
       "^react-native$": "react-native-web",
-      "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy"
+      "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
+      "^Assets(.*)$": "<rootDir>/src/assets/$1",
+      "^Components(.*)$": "<rootDir>/src/components/$1",
+      "^Pages(.*)$": "<rootDir>/src/pages/$1",
+      "^Utils(.*)$": "<rootDir>/src/utils/$1",
+      "^graphql(.*)$": "<rootDir>/src/graphql/$1"
     },
     "moduleFileExtensions": [
       "web.js",
@@ -152,5 +157,8 @@
     "presets": [
       "react-app"
     ]
+  },
+  "devDependencies": {
+    "typescript-plugin-css-modules": "^3.0.1"
   }
 }
