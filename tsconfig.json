@@ -13,7 +13,9 @@
       "Utils": ["src/utils"],
       "Utils/*": ["src/utils/*"],
       "graphql": ["src/graphql"],
-      "graphql/*": ["src/graphql/*"]
+      "graphql/*": ["src/graphql/*"],
+      "Context": ["src/context"],
+      "Context/*": ["src/context/*"]
     },
     "allowJs": true,
     "skipLibCheck": true,

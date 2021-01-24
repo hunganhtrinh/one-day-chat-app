@@ -336,6 +336,7 @@ module.exports = function (webpackEnv) {
         'Pages': path.resolve(__dirname, '../src/pages/'),
         'Utils': path.resolve(__dirname, '../src/utils/'),
         'graphql': path.resolve(__dirname, '../src/graphql/'),
+        'context': path.resolve(__dirname, '../src/context/'),
       },
       plugins: [
         // Adds support for installing with Plug'n'Play, leading to faster installs and adding
