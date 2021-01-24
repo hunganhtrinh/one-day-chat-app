@@ -7,22 +7,24 @@ import styles from "./App.module.css";
 
 type ChatAppStateType = {
   currentUser?: string;
-  currentChatGroup?: string;
+  currentChatChannel?: string;
 };
 
 const App = () => {
   const [chatInfo, setChatInfo] = useState<ChatAppStateType>({
     currentUser: "",
-    currentChatGroup: "",
+    currentChatChannel: "",
   });
   const setCurrentUser = (user: string) => {
     setChatInfo({
+      ...chatInfo,
       currentUser: user,
     });
   };
-  const setCurrentChatGroup = (chatGroup: string) => {
+  const setcurrentChatChannel = (chatGroup: string) => {
     setChatInfo({
-      currentChatGroup: chatGroup,
+      ...chatInfo,
+      currentChatChannel: chatGroup,
     });
   };
 
@@ -47,7 +49,7 @@ const App = () => {
                     value={{
                       chatInfo,
                       setCurrentUser,
-                      setCurrentChatGroup,
+                      setcurrentChatChannel,
                     }}
                   >
                     <div className={styles["selection-container"]}>

@@ -11,6 +11,11 @@
   border-bottom: 1px solid #f0f4f8;
 }
 
+.channels .channel:not(.active):hover {
+  background-color: #ffffff;
+  background-image: -webkit-linear-gradient(right, #e9eff5, #ffffff);
+}
+
 .channels .channel.active {
   background-color: #ffffff;
 }
