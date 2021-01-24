@@ -1,30 +1,30 @@
-import { useState } from 'react'
-import { UserSelection } from 'Components';
-import { ChatAppContext } from 'Context'
+import { useState } from "react";
+import { ChatChannelSelection, UserSelection } from "Components";
+import { ChatAppContext } from "Context";
 
 import "bootstrap/dist/css/bootstrap.css";
-import styles from './App.module.css';
+import styles from "./App.module.css";
 
 type ChatAppStateType = {
-  currentUser?: string,
-  currentChatGroup?: string,
-}
+  currentUser?: string;
+  currentChatGroup?: string;
+};
 
 const App = () => {
   const [chatInfo, setChatInfo] = useState<ChatAppStateType>({
-    currentUser: '',
-    currentChatGroup: ''
-  })
+    currentUser: "",
+    currentChatGroup: "",
+  });
   const setCurrentUser = (user: string) => {
     setChatInfo({
-      currentUser: user 
-    })
-  }
+      currentUser: user,
+    });
+  };
   const setCurrentChatGroup = (chatGroup: string) => {
     setChatInfo({
-      currentChatGroup: chatGroup 
-    })
-  }
+      currentChatGroup: chatGroup,
+    });
+  };
 
   return (
     <div className="container">
@@ -43,13 +43,16 @@ const App = () => {
             <div className={`${styles.card} m0`}>
               <div className="row no-gutters">
                 <div className="col-xl-4 col-lg-4 col-md-4 col-sm-3 col-3">
-                  <ChatAppContext.Provider value={{
-                    chatInfo,
-                    setCurrentUser,
-                    setCurrentChatGroup
-                  }}>
-                    <div className={styles['selection-container']}>
+                  <ChatAppContext.Provider
+                    value={{
+                      chatInfo,
+                      setCurrentUser,
+                      setCurrentChatGroup,
+                    }}
+                  >
+                    <div className={styles["selection-container"]}>
                       <UserSelection />
+                      <ChatChannelSelection />
                     </div>
                   </ChatAppContext.Provider>
                   {/* <div className="users-container">
