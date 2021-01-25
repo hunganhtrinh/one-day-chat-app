@@ -130,7 +130,6 @@ const ChatList = () => {
             latestMessages.find((y) => y.messageId === x.messageId)
           )
         );
-        console.log(newChatList);
         setCurrentChatList(newChatList);
       } else {
         setCurrentChatList(latestMessages);
@@ -146,7 +145,6 @@ const ChatList = () => {
         if (currentChatList) {
           const newChatList = currentChatList?.slice();
           const moreMessages = data.fetchMoreMessages.slice();
-          console.log(loadOlderMessages);
           if (loadOlderMessages) {
             newChatList.unshift(...moreMessages);
           } else {
