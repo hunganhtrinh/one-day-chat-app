@@ -12,8 +12,8 @@
       "Pages/*": ["src/pages/*"],
       "Utils": ["src/utils"],
       "Utils/*": ["src/utils/*"],
-      "graphql": ["src/graphql"],
-      "graphql/*": ["src/graphql/*"],
+      "Queries": ["src/graphql/queries"],
+      "Queries/*": ["src/graphql/queries/*"],
       "Context": ["src/context"],
       "Context/*": ["src/context/*"]
     },
