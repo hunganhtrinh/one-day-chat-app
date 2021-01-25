@@ -6,15 +6,15 @@ import styles from "./index.module.css";
 const CHANNELS = [
   {
     label: "General Channel",
-    value: "General Channel",
+    value: "1",
   },
   {
     label: "Technology Channel",
-    value: "Technology Channel",
+    value: "2",
   },
   {
     label: "LGTM Channel",
-    value: "LGTM Channel",
+    value: "3",
   },
 ];
 
@@ -30,12 +30,13 @@ const ChatChannelSelection = () => {
             <li
               key={index}
               className={`${styles.channel}${
-                chatAppContext.chatInfo.currentChatChannel === value
+                chatAppContext.chatInfo.currentChatChannelId === value
                   ? " " + styles.active
                   : ""
               }`}
               onClick={() => {
-                chatAppContext.setcurrentChatChannel(value);
+                chatAppContext.setcurrentChatChannel(label);
+                chatAppContext.setcurrentChatChannelId(value);
               }}
             >
               <p className={styles.name}>{label}</p>
