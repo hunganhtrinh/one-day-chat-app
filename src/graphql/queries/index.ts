@@ -22,4 +22,15 @@ const GET_MORE_MESSAGES = gql`
   }
 `;
 
-export { GET_CHATS, GET_MORE_MESSAGES };
+const POST_MESSAGE = gql`
+  mutation PostMessage($channelId: String!, $userId: String!, $text: String!) {
+    postMessage(channelId: $channelId, text: $text, userId: $userId) {
+      messageId
+      text
+      datetime
+      userId
+    }
+  }
+`;
+
+export { GET_CHATS, GET_MORE_MESSAGES, POST_MESSAGE };

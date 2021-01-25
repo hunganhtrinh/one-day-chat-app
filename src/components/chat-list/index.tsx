@@ -8,9 +8,9 @@ import {
   faArrowDown,
   faPaperPlane,
 } from "@fortawesome/free-solid-svg-icons";
-import { useLazyQuery } from "@apollo/client";
+import { ApolloError, useLazyQuery, useMutation } from "@apollo/client";
 import Skeleton from "react-loading-skeleton";
-import { GET_CHATS, GET_MORE_MESSAGES } from "Queries";
+import { GET_CHATS, GET_MORE_MESSAGES, POST_MESSAGE } from "Queries";
 import { USERS } from "Components/user-selection";
 import { isToday } from "Utils";
 
@@ -81,7 +81,9 @@ const Messages = ({
               <img src={user?.avatar} alt="User" />
               <div className={styles["chat-name"]}>{user?.name}</div>
             </div>
-            <div className={styles["chat-text"]}>{chat.text}</div>
+            <div className={styles["chat-text"]}>
+              <pre>{chat.text}</pre>
+            </div>
             <div className={styles["chat-hour"]}>
               {isToday(dateTime)
                 ? dateTime.toLocaleTimeString()
@@ -106,34 +108,70 @@ const ChatList = () => {
   const [loadOlderMessages, setLoadOlderMessages] = useState(false);
   const [scrollToTop, setScrollToTop] = useState(false);
   const [showError, setShowError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [currentChatList, setCurrentChatList] = useState<
     Array<ChatMessage> | undefined
   >();
+  const [currentTextMessage, setCurrentTextMessage] = useState("");
+  const onError = (error: ApolloError) => {
+    setErrorMessage(error.message);
+    setShowError(true);
+  };
 
   const [getChats, { loading, error }] = useLazyQuery(GET_CHATS, {
     onCompleted: (data) => {
-      const newChatList = data.fetchLatestMessages.slice().reverse();
-      setCurrentChatList(newChatList);
+      const latestMessages = data.fetchLatestMessages
+        .slice()
+        .reverse() as Array<ChatMessage>;
+      if (currentChatList) {
+        const newChatList = currentChatList?.map((x) =>
+          Object.assign(
+            x,
+            latestMessages.find((y) => y.messageId === x.messageId)
+          )
+        );
+        console.log(newChatList);
+        setCurrentChatList(newChatList);
+      } else {
+        setCurrentChatList(latestMessages);
+      }
       setScrollToTop(false);
     },
+    onError,
   });
-  const [
-    getMoreMessages,
-    { loading: moreMessagesloading, error: moreMessagesError },
-  ] = useLazyQuery(GET_MORE_MESSAGES, {
-    onCompleted: (data) => {
-      if (currentChatList) {
-        const newChatList = currentChatList?.slice();
-        const moreMessages = data.fetchMoreMessages.slice().reverse();
-        if (loadOlderMessages) {
-          newChatList.unshift(...moreMessages);
-        } else {
-          newChatList.push(...moreMessages);
+  const [getMoreMessages, { loading: moreMessagesloading }] = useLazyQuery(
+    GET_MORE_MESSAGES,
+    {
+      onCompleted: (data) => {
+        if (currentChatList) {
+          const newChatList = currentChatList?.slice();
+          const moreMessages = data.fetchMoreMessages.slice();
+          console.log(loadOlderMessages);
+          if (loadOlderMessages) {
+            newChatList.unshift(...moreMessages);
+          } else {
+            newChatList.push(...moreMessages);
+          }
+          setCurrentChatList(newChatList);
+          setScrollToTop(loadOlderMessages);
         }
-        setCurrentChatList(newChatList);
-        setScrollToTop(loadOlderMessages);
-      }
+      },
+      onError,
+    }
+  );
+
+  const [postMessage] = useMutation(POST_MESSAGE, {
+    onCompleted: () => {
+      setCurrentTextMessage("");
+      getMoreMessages({
+        variables: {
+          channelId: chatAppInfo.currentChatChannel?.value,
+          old: false,
+          messageId: currentChatList![currentChatList!.length - 1].messageId,
+        },
+      });
     },
+    onError,
   });
 
   useEffect(() => {
@@ -155,12 +193,6 @@ const ChatList = () => {
     }
   }, [chatAppInfo.currentChatChannel, chatAppInfo.currentUser, getChats]);
 
-  useEffect(() => {
-    if (moreMessagesError) {
-      setShowError(true);
-    }
-  }, [moreMessagesError]);
-
   if (loading) return <p>Loading ...</p>;
   if (error) return <p>{error.message}</p>;
 
@@ -177,8 +209,8 @@ const ChatList = () => {
               onClose={() => setShowError(false)}
               dismissible
             >
-              <Alert.Heading>Could not load messages!</Alert.Heading>
-              <p>{moreMessagesError?.message}</p>
+              <Alert.Heading>Something went wrong!</Alert.Heading>
+              <p>{errorMessage}</p>
             </Alert>
           )}
           <ul className={styles["chat-box"]}>
@@ -214,8 +246,26 @@ const ChatList = () => {
               as="textarea"
               rows={3}
               placeholder="Type your message here..."
+              value={currentTextMessage}
+              onChange={(e) => {
+                if (e.currentTarget) {
+                  setCurrentTextMessage(e.currentTarget.value);
+                }
+              }}
             />
-            <Button variant="info">
+            <Button
+              variant="info"
+              onClick={() => {
+                setLoadOlderMessages(false);
+                postMessage({
+                  variables: {
+                    channelId: chatAppInfo.currentChatChannel?.value,
+                    userId: chatAppInfo.currentUser?.value,
+                    text: currentTextMessage,
+                  },
+                });
+              }}
+            >
               Send Message <FontAwesomeIcon icon={faPaperPlane} />
             </Button>
           </Form.Group>

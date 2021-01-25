@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { Form } from "react-bootstrap";
 import JoyceAvatar from "Assets/Joyse.png";
 import SamAvatar from "Assets/Sam.png";
-import RusselAvatar from "Assets/Russell.png";
+import RussellAvatar from "Assets/Russell.png";
 
 export const USERS = [
   {
@@ -18,8 +18,8 @@ export const USERS = [
   },
   {
     name: "Russell",
-    value: "Russell",
-    avatar: RusselAvatar,
+    value: "Russel",
+    avatar: RussellAvatar,
   },
 ];
 
