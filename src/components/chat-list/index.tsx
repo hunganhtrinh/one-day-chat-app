@@ -123,17 +123,7 @@ const ChatList = () => {
       const latestMessages = data.fetchLatestMessages
         .slice()
         .reverse() as Array<ChatMessage>;
-      if (currentChatList) {
-        const newChatList = currentChatList?.map((x) =>
-          Object.assign(
-            x,
-            latestMessages.find((y) => y.messageId === x.messageId)
-          )
-        );
-        setCurrentChatList(newChatList);
-      } else {
-        setCurrentChatList(latestMessages);
-      }
+      setCurrentChatList(latestMessages);
       setScrollToTop(false);
     },
     onError,
