@@ -1,19 +1,25 @@
 import { ChatAppContext } from "Context";
 import { useContext } from "react";
 import { Form } from "react-bootstrap";
+import JoyceAvatar from "Assets/Joyse.png";
+import SamAvatar from "Assets/Sam.png";
+import RusselAvatar from "Assets/Russell.png";
 
-const USERS = [
+export const USERS = [
   {
-    label: "Joyse",
+    name: "Joyse",
     value: "Joyse",
+    avatar: JoyceAvatar,
   },
   {
-    label: "Sam",
+    name: "Sam",
     value: "Sam",
+    avatar: SamAvatar,
   },
   {
-    label: "Russell",
+    name: "Russell",
     value: "Russell",
+    avatar: RusselAvatar,
   },
 ];
 
@@ -23,21 +29,24 @@ const UserSelection = () => {
     <Form.Group controlId="form.userSelect">
       <Form.Label>1. Choose your user</Form.Label>
       <Form.Control
-        value={chatAppContext.chatInfo.currentUser}
+        value={chatAppContext.chatInfo.currentUser?.value}
         as="select"
         onChange={(e) => {
           if (e.currentTarget) {
-            chatAppContext.setCurrentUser(e.currentTarget.value);
+            const user = USERS.find(
+              (user) => user.value === e.currentTarget.value
+            );
+            user && chatAppContext.setCurrentUser(user);
           }
         }}
       >
         <option value={""} disabled>
           Please, select a user.
         </option>
-        {USERS.map(({ label, value }, index) => {
+        {USERS.map(({ name, value }, index) => {
           return (
             <option key={index} value={value}>
-              {label}
+              {name}
             </option>
           );
         })}

@@ -7,9 +7,8 @@ import "bootstrap/dist/css/bootstrap.css";
 import styles from "./App.module.css";
 
 type ChatAppStateType = {
-  currentUser?: string;
-  currentChatChannel?: string;
-  currentChatChannelId?: string;
+  currentUser?: { name: string; value: string; avatar: string };
+  currentChatChannel?: { name: string; value: string };
 };
 
 const client = new ApolloClient({
@@ -19,26 +18,26 @@ const client = new ApolloClient({
 
 const App = () => {
   const [chatInfo, setChatInfo] = useState<ChatAppStateType>({
-    currentUser: "",
-    currentChatChannel: "",
-    currentChatChannelId: "",
+    currentUser: { name: "", value: "", avatar: "" },
+    currentChatChannel: {
+      name: "",
+      value: "",
+    },
   });
-  const setCurrentUser = (user: string) => {
+  const setCurrentUser = (user: {
+    name: string;
+    value: string;
+    avatar: string;
+  }) => {
     setChatInfo({
       ...chatInfo,
       currentUser: user,
     });
   };
-  const setcurrentChatChannel = (chatGroup: string) => {
+  const setcurrentChatChannel = (chat: { name: string; value: string }) => {
     setChatInfo({
       ...chatInfo,
-      currentChatChannel: chatGroup,
-    });
-  };
-  const setcurrentChatChannelId = (chatGroupId: string) => {
-    setChatInfo({
-      ...chatInfo,
-      currentChatChannelId: chatGroupId,
+      currentChatChannel: { ...chat },
     });
   };
 
@@ -58,7 +57,6 @@ const App = () => {
             chatInfo,
             setCurrentUser,
             setcurrentChatChannel,
-            setcurrentChatChannelId,
           }}
         >
           <div className="content-wrapper">

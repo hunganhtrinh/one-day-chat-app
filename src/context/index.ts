@@ -2,24 +2,31 @@ import React from "react";
 
 export type ChatAppContextType = {
   chatInfo: {
-    currentUser?: string;
-    currentChatChannel?: string;
-    currentChatChannelId?: string;
+    currentUser?: { name: string; value: string; avatar: string };
+    currentChatChannel?: { name: string; value: string };
   };
-  setCurrentUser: (user: string) => void;
-  setcurrentChatChannel: (chatGroup: string) => void;
-  setcurrentChatChannelId: (chatGroupId: string) => void;
+  setCurrentUser: (user: {
+    name: string;
+    value: string;
+    avatar: string;
+  }) => void;
+  setcurrentChatChannel: (chat: { name: string; value: string }) => void;
 };
 
 const ChatAppContext = React.createContext<ChatAppContextType>({
   chatInfo: {
-    currentUser: "",
-    currentChatChannel: "",
-    currentChatChannelId: "",
+    currentUser: {
+      name: "",
+      value: "",
+      avatar: "",
+    },
+    currentChatChannel: {
+      name: "",
+      value: "",
+    },
   },
   setCurrentUser: () => {},
   setcurrentChatChannel: () => {},
-  setcurrentChatChannelId: () => {},
 });
 
 export { ChatAppContext };

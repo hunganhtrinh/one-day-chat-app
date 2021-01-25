@@ -30,13 +30,15 @@ const ChatChannelSelection = () => {
             <li
               key={index}
               className={`${styles.channel}${
-                chatAppContext.chatInfo.currentChatChannelId === value
+                chatAppContext.chatInfo.currentChatChannel?.value === value
                   ? " " + styles.active
                   : ""
               }`}
               onClick={() => {
-                chatAppContext.setcurrentChatChannel(label);
-                chatAppContext.setcurrentChatChannelId(value);
+                chatAppContext.setcurrentChatChannel({
+                  name: label,
+                  value,
+                });
               }}
             >
               <p className={styles.name}>{label}</p>
