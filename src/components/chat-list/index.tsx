@@ -11,7 +11,7 @@ import {
   faExclamationCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { ApolloError, useLazyQuery, useMutation } from "@apollo/client";
-import Skeleton from "react-loading-skeleton";
+// import Skeleton from "react-loading-skeleton";
 import { GET_CHATS, GET_MORE_MESSAGES, POST_MESSAGE } from "Queries";
 import { USERS } from "Components/user-selection";
 import { dateTimeSortFunc, isToday, mergeArraysByKey } from "Utils";
