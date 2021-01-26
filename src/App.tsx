@@ -14,6 +14,16 @@ type ChatAppStateType = {
 const client = new ApolloClient({
   uri: "https://angular-test-backend-yc4c5cvnnq-an.a.run.app/graphql",
   cache: new InMemoryCache(),
+  defaultOptions: {
+    watchQuery: {
+      fetchPolicy: "no-cache",
+      errorPolicy: "ignore",
+    },
+    query: {
+      fetchPolicy: "no-cache",
+      errorPolicy: "all",
+    },
+  },
 });
 
 const App = () => {

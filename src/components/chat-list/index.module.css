@@ -17,9 +17,16 @@
 .chat-container li.chat-left,
 .chat-container li.chat-right {
   display: flex;
-  flex: 1;
   flex-direction: row;
   margin-bottom: 40px;
+}
+
+.chat-container li.load-old {
+  margin-bottom: 40px;
+}
+
+.chat-container li.load-more {
+  margin-top: auto;
 }
 
 .chat-container li.chat-right {
@@ -100,4 +107,6 @@
   list-style-type: none;
   overflow: scroll;
   height: 55vh;
+  display: flex;
+  flex-direction: column;
 }

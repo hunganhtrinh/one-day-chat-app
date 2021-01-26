@@ -7,12 +7,14 @@ import {
   faArrowUp,
   faArrowDown,
   faPaperPlane,
+  faCheckCircle,
+  faExclamationCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { ApolloError, useLazyQuery, useMutation } from "@apollo/client";
 import Skeleton from "react-loading-skeleton";
 import { GET_CHATS, GET_MORE_MESSAGES, POST_MESSAGE } from "Queries";
 import { USERS } from "Components/user-selection";
-import { isToday } from "Utils";
+import { dateTimeSortFunc, isToday, mergeArraysByKey } from "Utils";
 
 import styles from "./index.module.css";
 
@@ -21,6 +23,7 @@ type ChatMessage = {
   text: string;
   datetime?: string;
   userId: string;
+  status?: string;
 };
 
 type MessagesProps = {
@@ -29,6 +32,10 @@ type MessagesProps = {
   onLoadOlderClick: () => void;
   onLoadMoreClick: () => void;
   scrollToTop: boolean;
+};
+
+type MessageStatusProps = {
+  chat: ChatMessage;
 };
 
 const Messages = ({
@@ -52,10 +59,10 @@ const Messages = ({
     }
   }, [currentChatList, messagesEndRef, messagesStartRef, scrollToTop]);
 
-  if (messagesloading) return <Skeleton count={18} />;
+  // if (messagesloading) return <Skeleton count={18} />;
   return (
     <React.Fragment>
-      <li className={styles["chat-left"]}>
+      <li className={styles["load-old"]}>
         <Button
           variant="info"
           onClick={onLoadOlderClick}
@@ -64,42 +71,72 @@ const Messages = ({
           Read More <FontAwesomeIcon icon={faArrowUp} />
         </Button>
       </li>
-      {currentChatList?.map((chat, index) => {
-        const isCurrentUser =
-          chatAppContext.chatInfo.currentUser?.value === chat.userId;
-        const user = USERS.find((u) => u.value === chat.userId);
-        const dateTime = new Date(chat.datetime!);
+      {currentChatList.length > 0
+        ? currentChatList?.map((chat, index) => {
+            const isCurrentUser =
+              chatAppContext.chatInfo.currentUser?.value === chat.userId;
+            const user = USERS.find((u) => u.value === chat.userId);
+            const dateTime = new Date(chat.datetime!);
 
-        return (
-          <li
-            key={index}
-            className={
-              isCurrentUser ? styles["chat-right"] : styles["chat-left"]
-            }
-          >
-            <div className={styles["chat-avatar"]}>
-              <img src={user?.avatar} alt="User" />
-              <div className={styles["chat-name"]}>{user?.name}</div>
-            </div>
-            <div className={styles["chat-text"]}>
-              <pre>{chat.text}</pre>
-            </div>
-            <div className={styles["chat-hour"]}>
-              {isToday(dateTime)
-                ? dateTime.toLocaleTimeString()
-                : dateTime.toLocaleString()}
-              {/* TO-DO show status of sending message */}
-            </div>
-          </li>
-        );
-      })}
-      <li className="left">
+            return (
+              <li
+                key={index}
+                className={
+                  isCurrentUser ? styles["chat-right"] : styles["chat-left"]
+                }
+              >
+                <div className={styles["chat-avatar"]}>
+                  <img src={user?.avatar} alt="User" />
+                  <div className={styles["chat-name"]}>{user?.name}</div>
+                </div>
+                <div className={styles["chat-text"]}>
+                  <pre>{chat.text}</pre>
+                </div>
+                <div className={styles["chat-hour"]}>
+                  {isToday(dateTime)
+                    ? dateTime.toLocaleTimeString()
+                    : dateTime.toLocaleString()}
+                  <MessageStatus chat={chat} />
+                </div>
+              </li>
+            );
+          })
+        : null}
+      <li className={styles["load-more"]}>
         <Button variant="info" onClick={onLoadMoreClick} ref={messagesEndRef}>
           Read More <FontAwesomeIcon icon={faArrowDown} />
         </Button>
       </li>
     </React.Fragment>
   );
+};
+
+const MessageStatus = ({ chat }: MessageStatusProps) => {
+  const chatAppContext = useContext(ChatAppContext);
+
+  if (chatAppContext.chatInfo.currentUser?.value !== chat.userId) {
+    return null;
+  }
+
+  if (chat.status === "success") {
+    return (
+      <React.Fragment>
+        <FontAwesomeIcon icon={faCheckCircle} color={"green"} />
+        Sent
+      </React.Fragment>
+    );
+  }
+
+  if (chat.status === "error") {
+    return (
+      <React.Fragment>
+        <FontAwesomeIcon icon={faExclamationCircle} color={"red"} />
+        Error
+      </React.Fragment>
+    );
+  }
+
+  return null;
 };
 
 const ChatList = () => {
@@ -109,9 +146,9 @@ const ChatList = () => {
   const [scrollToTop, setScrollToTop] = useState(false);
   const [showError, setShowError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [currentChatList, setCurrentChatList] = useState<
-    Array<ChatMessage> | undefined
-  >();
+  const [currentChatList, setCurrentChatList] = useState<Array<ChatMessage>>(
+    []
+  );
   const [currentTextMessage, setCurrentTextMessage] = useState("");
   const onError = (error: ApolloError) => {
     setErrorMessage(error.message);
@@ -133,14 +170,22 @@ const ChatList = () => {
     {
       onCompleted: (data) => {
         if (currentChatList) {
-          const newChatList = currentChatList?.slice();
           const moreMessages = data.fetchMoreMessages.slice();
+          let newChatList = currentChatList?.slice();
           if (loadOlderMessages) {
             newChatList.unshift(...moreMessages);
           } else {
-            newChatList.push(...moreMessages);
+            newChatList = mergeArraysByKey(
+              newChatList,
+              moreMessages,
+              "messageId"
+            );
           }
-          setCurrentChatList(newChatList);
+          const orderedList = newChatList.sort(dateTimeSortFunc);
+
+          console.log(newChatList);
+          console.log(orderedList);
+          setCurrentChatList(orderedList);
           setScrollToTop(loadOlderMessages);
         }
       },
@@ -149,17 +194,30 @@ const ChatList = () => {
   );
 
   const [postMessage] = useMutation(POST_MESSAGE, {
-    onCompleted: () => {
+    onCompleted: (data) => {
+      const { postMessage: message } = data;
+      delete message.__typename;
+      message.status = "success";
+      const orderedList = currentChatList
+        ?.concat(message)
+        .sort(dateTimeSortFunc);
+      setCurrentChatList(orderedList);
       setCurrentTextMessage("");
-      getMoreMessages({
-        variables: {
-          channelId: chatAppInfo.currentChatChannel?.value,
-          old: false,
-          messageId: currentChatList![currentChatList!.length - 1].messageId,
-        },
-      });
     },
-    onError,
+    onError: () => {
+      const message = {
+        datetime: new Date().toISOString(),
+        messageId: "-1",
+        text: currentTextMessage,
+        userId: chatAppContext.chatInfo.currentUser?.value!,
+        status: "error",
+      };
+      const orderedList = currentChatList
+        ?.concat(message)
+        .sort(dateTimeSortFunc);
+      setCurrentChatList(orderedList);
+      setCurrentTextMessage("");
+    },
   });
 
   useEffect(() => {
@@ -183,13 +241,15 @@ const ChatList = () => {
 
   if (loading) return <p>Loading ...</p>;
   if (error) return <p>{error.message}</p>;
+  if (!chatAppInfo.currentUser?.value || !chatAppInfo.currentChatChannel?.value)
+    return null;
 
   return (
     <React.Fragment>
       <div className={styles["channel-name"]}>
         <span>{chatAppContext.chatInfo.currentChatChannel?.name}</span>
       </div>
-      {currentChatList && (
+      {
         <div className={styles["chat-container"]}>
           {showError && (
             <Alert
@@ -202,32 +262,41 @@ const ChatList = () => {
             </Alert>
           )}
           <ul className={styles["chat-box"]}>
-            <Messages
-              messagesloading={moreMessagesloading}
-              currentChatList={currentChatList}
-              scrollToTop={scrollToTop}
-              onLoadOlderClick={() => {
-                setLoadOlderMessages(true);
-                getMoreMessages({
-                  variables: {
-                    channelId: chatAppInfo.currentChatChannel?.value,
-                    old: true,
-                    messageId: currentChatList[0].messageId,
-                  },
-                });
-              }}
-              onLoadMoreClick={() => {
-                setLoadOlderMessages(false);
-                getMoreMessages({
-                  variables: {
-                    channelId: chatAppInfo.currentChatChannel?.value,
-                    old: false,
-                    messageId:
-                      currentChatList[currentChatList.length - 1].messageId,
-                  },
-                });
-              }}
-            />
+            {currentChatList!.length > 0 && (
+              <Messages
+                messagesloading={moreMessagesloading}
+                currentChatList={currentChatList!}
+                scrollToTop={scrollToTop}
+                onLoadOlderClick={() => {
+                  setLoadOlderMessages(true);
+                  getMoreMessages({
+                    variables: {
+                      channelId: chatAppInfo.currentChatChannel?.value,
+                      old: true,
+                      messageId: currentChatList![0].messageId,
+                    },
+                  });
+                }}
+                onLoadMoreClick={() => {
+                  const latestMessage = currentChatList
+                    ?.slice()
+                    .reverse()
+                    .find((message) => {
+                      return message.status !== "error";
+                    });
+                  if (latestMessage) {
+                    setLoadOlderMessages(false);
+                    getMoreMessages({
+                      variables: {
+                        channelId: chatAppInfo.currentChatChannel?.value,
+                        old: false,
+                        messageId: latestMessage.messageId,
+                      },
+                    });
+                  }
+                }}
+              />
+            )}
           </ul>
           <Form.Group>
             <Form.Control
@@ -252,13 +321,29 @@ const ChatList = () => {
                     text: currentTextMessage,
                   },
                 });
+                const latestMessage = currentChatList
+                  ?.slice()
+                  .reverse()
+                  .find((message) => {
+                    return message.status !== "error";
+                  });
+                if (latestMessage) {
+                  setLoadOlderMessages(false);
+                  getMoreMessages({
+                    variables: {
+                      channelId: chatAppInfo.currentChatChannel?.value,
+                      old: false,
+                      messageId: latestMessage.messageId,
+                    },
+                  });
+                }
               }}
             >
               Send Message <FontAwesomeIcon icon={faPaperPlane} />
             </Button>
           </Form.Group>
         </div>
-      )}
+      }
     </React.Fragment>
   );
 };
